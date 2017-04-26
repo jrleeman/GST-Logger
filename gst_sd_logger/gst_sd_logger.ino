@@ -4,27 +4,41 @@
  ** MISO - pin 12
  ** CLK - pin 13
  ** CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
+ * 
+ * 
+ * https://github.com/jrleeman/GST-Logger
+ * https://github.com/mikalhart/TinyGPSPlus
+ * https://github.com/sparkfun/SparkFun_ISL29125_Breakout_Arduino_Library
+ * https://github.com/adafruit/Adafruit-MLX90614-Library
+ * 
 */
-
+#include <SoftwareSerial.h>
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
+
 #include <Adafruit_MLX90614.h>
 #include <SparkFunISL29125.h>
 #include <TinyGPS++.h>
-#include <SoftwareSerial.h>
 
+// SD Pin connections
 const int chipSelect = 4;
+
+// GPS Pin connections
 static const int RXPin = 4, TXPin = 3;
 static const uint32_t GPSBaud = 4800;
 
-unsigned int color_red
-unsigned int color_green
-unsigned int color_blue
+// Variable Declarations
+unsigned int color_red;
+unsigned int color_green;
+unsigned int color_blue;
+float IR_ambient_temperature;
+float IR_object_temperature;
 
 Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 SFE_ISL29125 RGB_sensor;
 TinyGPSPlus gps;
+File logfile;
 
 // The serial connection to the GPS device
 SoftwareSerial ss(RXPin, TXPin);
@@ -51,6 +65,15 @@ void setup() {
   {
     Serial.println("Sensor Initialization Successful\n\r");
   }
+
+  char filename[16]; // make it long enough to hold your longest file name, plus a null terminator
+  int n = 0;
+  snprintf(filename, sizeof(filename), "data%03d.txt", n); // includes a three-digit sequence number in the file name
+  while(SD.exists(filename)) {
+    n++;
+    snprintf(filename, sizeof(filename), "data%03d.txt", n);
+  }
+  logfile = SD.open(filename,FILE_READ);
 
 }
 
@@ -107,10 +130,10 @@ void log_data() {
   logfile.write(",");
 
   // Log RGB values
-  char sz[32];
+  char szz[32];
   sprintf(sz, "%d,%d,%d,",
   color_red, color_green, color_blue);
-  logfile.write(sz);
+  logfile.write(szz);
   
   
 }
