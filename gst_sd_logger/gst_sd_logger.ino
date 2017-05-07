@@ -1,31 +1,32 @@
 /*
-* SD card attached to SPI bus as follows:
- ** MOSI - pin 11
- ** MISO - pin 12
- ** CLK - pin 13
- ** CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
+ * GST_SD_Logger.ino
+ *
+ * Log data from an IR temperature sensor and color sensor to and SD
+ * Card with geotagged information.
  * 
+ * Code Repo: https://github.com/jrleeman/GST-Logger
  * 
- * https://github.com/jrleeman/GST-Logger
+ * Necessary Libraries:
  * https://github.com/mikalhart/TinyGPSPlus
  * https://github.com/sparkfun/SparkFun_ISL29125_Breakout_Arduino_Library
  * https://github.com/adafruit/Adafruit-MLX90614-Library
  * 
 */
-//#include <SoftwareSerial.h>
-#include <WildFire.h>
-#include <SPI.h>
+
 #include <SD.h>
+//#include <SoftwareSerial.h> // Uncomment if you will use software serial (i.e. Uno)
+#include <SPI.h>
 #include <Wire.h>
+
 #include <Adafruit_MLX90614.h>
 #include <SparkFunISL29125.h>
 #include <TinyGPS++.h>
 
 // Variables and defines
-#define chipSelect 16
+#define chipSelect 16 // Change for your setup/board
 
-// GPS Pin connections
-//static const int RXPin = 4, TXPin = 3;
+// GPS connections
+//static const int RXPin = 4, TXPin = 3; // Uncomment for software serial
 static const uint32_t GPSBaud = 4800;
 
 // Variable Declarations
@@ -34,20 +35,21 @@ unsigned int color_green;
 unsigned int color_blue;
 float IR_ambient_temperature;
 float IR_object_temperature;
+char filename[16];
 
+// Create object instances
 Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 SFE_ISL29125 RGB_sensor;
 TinyGPSPlus gps;
 File logfile;
-WildFire wildfire;
-// The serial connection to the GPS device
-//SoftwareSerial ss(RXPin, TXPin);
-char filename[16]; // make it long enough to hold your longest file name, plus a null terminator
+//SoftwareSerial ss(RXPin, TXPin); // Uncomment for software serial 
+
+
 void setup() {
-  wildfire.begin();
-  pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(115200);
-  Serial1.begin(GPSBaud);
+  pinMode(LED_BUILTIN, OUTPUT); // Set built-in LED to be output
+  Serial.begin(115200); // Startup debug serial
+  Serial1.begin(GPSBaud); // Startup GPS serial
+  //ss.begin(GPSBaud); // Uncomment for software serial
   
   // Setup SD Card
   Serial.print("Initializing SD card...");
