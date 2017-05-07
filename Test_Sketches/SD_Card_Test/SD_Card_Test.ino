@@ -12,7 +12,7 @@
 const int chipSelect = 16;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   Serial.print("Initializing SD card...");
 
