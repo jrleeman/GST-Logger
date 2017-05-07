@@ -53,28 +53,29 @@ void setup() {
   
   // Setup SD Card
   Serial.print("Initializing SD card...");
-
-  // see if the card is present and can be initialized:
   if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
-    // don't do anything more:
+    Serial.println("Card failed, or not present... Halting");
     return;
   }
-  Serial.println("card initialized.");
+  Serial.println("SD Card Initialization Successful\n\r");
 
   // Setup IR Sensor
-  mlx.begin(); 
+  if (mlx.begin())
+  {
+    Serial.println("IR Sensor Initialization Successful\n\r");
+  }
+   
   
   // Setup Color Sensor
-  
   if (RGB_sensor.init())
   {
-    Serial.println("Sensor Initialization Successful\n\r");
+    Serial.println("Color Sensor Initialization Successful\n\r");
   }
   
-  
+  // Find the next available filename to log to
+  // dataXXX.txt format
   int n = 0;
-  snprintf(filename, sizeof(filename), "data%03d.txt", n); // includes a three-digit sequence number in the file name
+  snprintf(filename, sizeof(filename), "data%03d.txt", n);
   while(SD.exists(filename)) {
     n++;
     snprintf(filename, sizeof(filename), "data%03d.txt", n);
@@ -85,6 +86,8 @@ void setup() {
 }
 
 void loop() {
+  // When we get a valid GPS message, read the sensors
+  // and call the log function to write it all out
   while (Serial1.available() > 0){
     if (gps.encode(Serial1.read())){
       read_IR_sensor();
@@ -92,23 +95,31 @@ void loop() {
       log_data();
     }
   }
-
 }
 
 void log_data() {
+  // Log the data out to the logfile
+  
   digitalWrite(LED_BUILTIN, HIGH);
+  
   logfile = SD.open(filename,FILE_WRITE);
   
-  // Format and write out the time stamp
-  char sz[32];
-  sprintf(sz, "%04d-%02d-%02dT%02d:%02d:%02d.%02d,",
+  // Format the time stamp
+  char ts[32];
+  sprintf(ts, "%04d-%02d-%02dT%02d:%02d:%02d.%02d,",
   gps.date.year(), gps.date.month(), gps.date.day(), gps.time.hour(),
   gps.time.minute(), gps.time.second(), gps.time.centisecond());
 
+  // Format RGB values
+  char rgb[32];
+  sprintf(rgb, "%d,%d,%d", color_red, color_green, color_blue);
+
   if (logfile) {
-    
-    logfile.write(sz);
     Serial.print("Writing data...");
+
+    // Log timestamp
+    logfile.write(ts);
+    
     // Log latitude
     log_float(gps.location.lat(), -999.99, 10, 6);
     logfile.write(",");
@@ -142,18 +153,13 @@ void log_data() {
     logfile.write(",");
   
     // Log RGB values
-    
-    char szz[32];
-    sprintf(szz, "%d,%d,%d",
-    color_red, color_green, color_blue);
-    logfile.write(szz);
+    logfile.write(rgb);
     logfile.println("");
     Serial.println("Done");
   }
   logfile.close();
+  
   digitalWrite(LED_BUILTIN, LOW);
-  
-  
 }
 
 void read_IR_sensor() {
@@ -165,15 +171,14 @@ void read_IR_sensor() {
 }
 
 void read_color_sensor(){
+  // Get the RGB sensor values
   color_red = RGB_sensor.readRed();
   color_green = RGB_sensor.readGreen();
   color_blue = RGB_sensor.readBlue();
 }
 
 static void log_float(float val, float invalid, int len, int prec) {
-  /*
-  Logs a float value
-  */
+  // Logs a float value
   if (val == invalid)
   {
     while (len-- > 1)
@@ -187,5 +192,4 @@ static void log_float(float val, float invalid, int len, int prec) {
     flen += vi >= 1000 ? 4 : vi >= 100 ? 3 : vi >= 10 ? 2 : 1;
   }
 }
-
 
