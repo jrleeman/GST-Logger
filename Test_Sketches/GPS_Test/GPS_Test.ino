@@ -21,6 +21,7 @@ void setup()
   Serial.begin(115200);
   Serial1.begin(GPSBaud);
   //ss.begin(GPSBaud); // Uncomment for software serial
+  Serial.println("Lat, Lon");
 }
 
 void loop()
@@ -30,7 +31,7 @@ void loop()
     if (gps.encode(Serial1.read())) {
       Serial.print(gps.location.lat(), 6);
       Serial.print(F(","));
-      Serial.print(gps.location.lng(), 6);
+      Serial.println(gps.location.lng(), 6);
     }
       
     if (millis() > 5000 && gps.charsProcessed() < 10) {
