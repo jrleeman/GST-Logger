@@ -15,7 +15,7 @@ void setup()
   Serial.begin(115200);
   if (RGB_sensor.init())
   {
-    Serial.println("Sensor Initialization Successful\n\r");
+    Serial.println("Red, Green, Blue");
   }
 }
 
