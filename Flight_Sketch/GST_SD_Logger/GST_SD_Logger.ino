@@ -118,7 +118,7 @@ void log_data() {
 
   // Format RGB values
   char rgb[32];
-  sprintf(rgb, "%d,%d,%d", color_red, color_green, color_blue);
+  sprintf(rgb, "%u,%u,%u", color_red, color_green, color_blue);
 
   if (logfile) {
     Serial.print("Writing data...");
