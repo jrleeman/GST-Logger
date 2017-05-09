@@ -36,6 +36,7 @@ unsigned int color_blue;
 float IR_ambient_temperature;
 float IR_object_temperature;
 char filename[16];
+int previous_second;
 
 // Create object instances
 Adafruit_MLX90614 mlx = Adafruit_MLX90614();
@@ -92,7 +93,12 @@ void loop() {
     if (gps.encode(Serial1.read())){
       read_IR_sensor();
       read_color_sensor();
-      log_data();
+
+      if (gps.time.second() != previous_second){
+        log_data();
+        previous_second = gps.time.second();
+      }
+     
     }
   }
 }
